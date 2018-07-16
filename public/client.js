@@ -12,7 +12,6 @@ buttons.create.onclick = createOffer
 
 
 
-
 const server = { urls: "stun:stun.l.google.com:19302" }
 
 const enterPressed = e => e.keyCode == 13
@@ -22,7 +21,7 @@ const getMedia = navigator.mediaDevices.getUserMedia({video:true, audio:true})
     .then(stream => pc.addStream(localVideo.srcObject = stream))
     .catch(e => mkToast(e, 'error'))
 
-const haveAnswer = (conn) => {dvv
+const haveAnswer = (conn) => {
 
     //Fix up the answer
     const answer = `${conn.jamiesmith__Answer__c}\r\n`
@@ -100,7 +99,7 @@ const poleForAnswer = (Id) => {
         select.innerHTML = `<option value="">--Select User--</option>`
         // Get potential ClientB's
         const getUsers = new Promise((resolve, reject) => {
-            const users = [{Id:001, Name: 'Jamie'}]
+            const users = [{Id:1, Name: 'Jamie'}]
             users.length ? resolve(users) : reject('No Users')
         })
         .then(x => x.map(u => select.innerHTML += `<option value="${u.Id}">${u.Name}</option>`))
@@ -130,11 +129,11 @@ function dcInit() {
 }
 
 function createOffer() {
-    
+    mkToast('Creating Offer....', 'info')
     const userId = document.querySelector('.userList').value
 
     if(userId){
-        mkToast('Creating connection.  This may take ~20 seconds.', 'info')
+        //mkToast('Creating connection.  This may take ~20 seconds.', 'info')
     }
     else {
         mkToast('Select a Peer to Connect to...', 'warning')
@@ -156,18 +155,13 @@ function createOffer() {
         const offer = pc.localDescription.sdp
             , uid = userId
         ;
+        console.dir(offer)
+        console.log(uid)
 
         const mkConn = new Promise((resolve, reject) => {
 
            
-            const xhr = new XMLHttpRequest
-            xhr.open('GET', `/mkConn/?offer=${offer}&uid=${uid}`, true)
-            xhr.onreadystatechange = function(){
-                //if (xhr.readyState === 4) {
-                    resolve(xhr.responseText)
-                //}
-            }
-            xhr.send()
+            sendToServer('offer', `?offer=${offer}&uid=${uid}`)
 
         }).then(conn => {
             console.dir(conn)
@@ -179,6 +173,14 @@ function createOffer() {
     }
 }
 
+const sendToServer = (where, what) => new Promise((res, rej) => {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", `/${where}/${what}`, true)
+    xhr.onreadystatechange = () =>
+        xhr.status == 200 ? res(xhr.responseText) : rej(xhr.error)
+    xhr.send()
+})
+
 chat.onkeypress = e => {
     
     if (!enterPressed(e)){
@@ -186,7 +188,7 @@ chat.onkeypress = e => {
     }
 
     dc.send(chat.value)
-    log(chat.value)
+    console.log(chat.value)
     chat.value = ''
 }
 
@@ -195,12 +197,9 @@ const mkToast = (msg, type) => {
     const cont = document.createElement('div')
     const toaster = document.querySelector('.toaster')
 
-    cont.innerHTML =  `<div style="height: 4rem;">
-        ${type}: ${msg}
-    </div>`
+    cont.innerHTML =  `<div>${type}: ${msg}</div>`
     
-    //cont.querySelector('.close').onclick = () => toaster.innerHTML = ''
-    toaster.innerHTML = ''
+    //toaster.innerHTML = ''
     toaster.appendChild(cont.childNodes[0])
 }
 

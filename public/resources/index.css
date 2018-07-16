@@ -1,0 +1,15 @@
+video {
+    width: 640px;
+    height: auto;
+}
+
+.hide {
+    display: none;
+}
+
+.toaster {
+    height: 4rem;
+    background: grey;
+    padding: .5rem;
+    color: white;
+}

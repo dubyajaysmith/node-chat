@@ -4,31 +4,26 @@
 const express = require('express')
     , app = express('path')
     , path = require('path')
-    , PORT = process.env.PORT || 5000
-    , server = require('http').createServer(app)
-    , io = require('socket.io')(server)
+    , PORT = process.env.PORT || 5500
+    , Storage = require('node-storage')
 ;
 
-app
-    .use(express.static(path.join(__dirname, 'public')))
-    .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
-    .listen(PORT, () => console.log(`Listening on ${ PORT }`))
+app.use(express.static(path.join(__dirname, 'public')))
+   .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
+   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
 
-io.on('connection', function(client) {  
-    console.log('Client connected...')
-
-    client.on('join', function(data) {
-        console.log(data)
-    })
-})
-
-app.get('/mkConn/', function(req, res){
+app.get('/offer/', (req, res) => {
     
-    const uid = req.params.uid
-    const offer = req.params.offer
+    const uid = req.query.uid
+        , offer = req.query.offer;
 
     console.log('setting offer..... ')
-    console.dir(req.params)
+    console.dir(offer)
     console.dir(uid)
-    res.send(offer)
+
+    const store = new Storage('signal')
+    store.put('offer', req.query)
+
+    res.send('success')
+
 })
