@@ -1,6 +1,6 @@
 {
   "name": "node-chat",
-  "version": "0.0.01",
+  "version": "0.0.1",
   "description": "WIP",
   "engines": {
     "node": "8.9.1"
@@ -12,7 +12,8 @@
     "test": "node test.js"
   },
   "dependencies": {
-    "express": "^4.15.2"
+    "express": "^4.15.2",
+    "socket.io": "^2.1.1"
   },
   "devDependencies": {},
   "repository": {

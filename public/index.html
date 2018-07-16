@@ -1,0 +1,50 @@
+<html>
+
+    <body>
+    <div class="toaster" style="height: 4rem;"></div>
+
+    <div class="videos">
+    
+        <video id="localVideo" title="You" autoplay="true" muted="true"></video>
+    
+        <video id="remoteVideo" autoplay="true" class="hide"></video>
+        <br />
+    </div>
+    
+    <div class="createArea center">
+    
+        <select class="userList" >
+            <option>Jamie Smith</option>
+        </select>
+        <br />
+        <br />
+        <div class="createButtons">
+            <button id="create" class="slds-button slds-button_success">Create Connection</button>
+        </div>
+    </div>
+    
+    <br />
+    <br />
+    <br />
+    
+    <div class="chatArea center hide">
+    
+        <div id="div"></div>
+    
+        <textarea 
+            id="chat" 
+            title="Hit enter to send" 
+            placeholder="Send text to peer. Press Enter to send.">
+        </textarea>
+    
+        <br />
+    </div>
+    
+    </body>
+
+    <!-- shim to insulate apps from spec changes and prefix differences.  -->
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="/client.js" charset="utf-8"></script>
+
+
+</html>
