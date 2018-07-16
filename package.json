@@ -1,0 +1,23 @@
+{
+  "name": "node-chat",
+  "version": "0.0.01",
+  "description": "WIP",
+  "engines": {
+    "node": "8.9.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    ".": "node index.js",
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "express": "^4.15.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dubyajaysmith/node-chat"
+  },
+  "keywords": []
+}
