@@ -60,10 +60,10 @@ const poleForAnswer = (Id) => {
         const getConn = new Promise((resolve, reject) => {
             console.log('Has param: ', Id)
             const xhr = new XMLHttpRequest()
-            xhr.open("GET", `/getOffer/`)
+            xhr.open("GET", `/getOffer/`, false)
             xhr.onreadystatechange = () => {
                 const offer = xhr.response
-                //console.log(offer)
+                console.log(offer.length)
                 xhr.status == 200 
                     ? resolve(offer) : reject('not good')
             }
@@ -71,7 +71,7 @@ const poleForAnswer = (Id) => {
             
         }).then(offer => {
 
-            console.log('in offer then>>')
+            console.log('in offer then >> ', offer.length)
 
             if(offer){
                     
@@ -82,21 +82,27 @@ const poleForAnswer = (Id) => {
                 const desc = new RTCSessionDescription({ type:"offer", sdp:offer })
                 pc.setRemoteDescription(desc)
                     .then(() => {
-                        console.log('ran')
+                        console.log('setRemoteDescription THEN >> ')
                         pc.createAnswer()
-                    }).then(d => pc.setLocalDescription(d)
-                            )
-                    .catch(error => mkToast(error, 'error'))
+                    }).then(d => {
+                        pc.setLocalDescription(d)
+                        console.log('setLocalDescription THEN >> ')
+                    })
+                    .catch(error => console.error(error))
                 
                 pc.onicecandidate = e => {
 
+                    console.log('inside onicecandidate')
+
+                    
                     if (e.candidate){
                         console.log('CHECK HIT> HITTING BRAKES')
                         return
                     }
 
+
                     const answer = pc.localDescription.sdp
-                    console.log(answer)
+                    console.log(answer.length)
                     mkToast('Made Answer. Sending...', 'success')
 
                     // Set Answer for Peer's pole to pickup
@@ -108,8 +114,9 @@ const poleForAnswer = (Id) => {
                         xhr.onreadystatechange = (res) =>
                             xhr.status == 200 ? resolve(res) : reject('not good')
                         xhr.send()
-                    }).then(x => mkToast('Set Answer. Waiting for peer\'s connection...'))
-                    .catch(error => mkToast(error, 'error'))
+                    })
+                    .then(x => mkToast('Set Answer. Waiting for peer\'s connection...'))
+                    .catch(error => console.error(error))
                 }
             }
         }).catch(error => mkToast(error, 'error'))

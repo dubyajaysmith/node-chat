@@ -21,7 +21,7 @@ if(DB.get('dev').value() == undefined){
 
 app.use(express.static(path.join(__dirname, 'public')))
    .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
-   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
+   .listen(PORT, () => console.log(`localhost:${ PORT }`))
 
 app.get('/setOffer/', (req, res) => {
     
