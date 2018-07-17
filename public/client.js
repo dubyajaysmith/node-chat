@@ -1,5 +1,5 @@
 // jshint esversion: 6, asi: true, laxcomma: true
-'user strict()'
+//'user strict()'
 
 const localVideo = document.getElementById('localVideo')
 const remoteVideo = document.getElementById('remoteVideo')
@@ -37,7 +37,14 @@ const poleForAnswer = (Id) => {
     const getConn = new Promise((resolve, reject) => {
         
         console.log('pole for answer... ')
-        console.log(Id)
+
+        const xhr = new XMLHttpRequest()
+        // todo may need a user to put their name later
+        xhr.open("GET", `/getAnswer/`)
+        xhr.onreadystatechange = () =>
+            xhr.status == 200 ? resolve(xhr) : setTimeout(getConn(), 2000)
+        xhr.send()
+    
     })
     .then(conn => conn.jamiesmith__Answer__c 
         ? haveAnswer(conn) 
@@ -46,47 +53,65 @@ const poleForAnswer = (Id) => {
 
 }
 
-{   // if params, there's a connection made already so get it
+{   // todo unneeded until links, if params, there's a connection made already so get it
     const Id = new URL(location.href).searchParams.get("id")
     if(Id){
         
-        const getConn = new Promise((resolve, reject) =>
-            Visualforce.remoting.Manager.invokeAction(
-                '{!$RemoteAction.ForceRTC.getConnection}',
-                Id,
-                (result, e) => e.status ? resolve(result) : reject(e.message))
-        ).then(conn => {
-
-            mkToast('Found Connection. Replying...', 'success')
-
-            //Fix up the offer
-            const offer = `${conn.jamiesmith__Offer__c}\r\n`
-            
-            // set _offer
-            const desc = new RTCSessionDescription({ type:"offer", sdp:offer })
-            pc.setRemoteDescription(desc)
-                .then(() => pc.createAnswer()).then(d => pc.setLocalDescription(d))
-                .catch(error => mkToast(error, 'error'))
-            
-            pc.onicecandidate = e => {
-
-                if (e.candidate){
-                    return
-                }
-
-                // Answer = pc.localDescription.sdp
-
-                // Set Answer for Peer's pole to pickup
-                const setAnswer = new Promise((resolve, reject) =>
-                    Visualforce.remoting.Manager.invokeAction(
-                        '{!$RemoteAction.ForceRTC.setAnswer}',
-                        Id,
-                        pc.localDescription.sdp,
-                        (result, e) => e.status ? resolve(result) : reject(e.message)))
-                .then(x => mkToast('Set Answer. Waiting for peer\'s connection...'))
-                .catch(error => mkToast(error, 'error'))
+        const getConn = new Promise((resolve, reject) => {
+            console.log('Has param: ', Id)
+            const xhr = new XMLHttpRequest()
+            xhr.open("GET", `/getOffer/`)
+            xhr.onreadystatechange = () => {
+                const offer = xhr.response
+                //console.log(offer)
+                xhr.status == 200 
+                    ? resolve(offer) : reject('not good')
             }
+            xhr.send()
             
+        }).then(offer => {
+
+            console.log('in offer then>>')
+
+            if(offer){
+                    
+                mkToast('Found Offer. Making Answer...', 'success')
+                //console.log(offer)
+
+                // set _offer
+                const desc = new RTCSessionDescription({ type:"offer", sdp:offer })
+                pc.setRemoteDescription(desc)
+                    .then(() => {
+                        console.log('ran')
+                        pc.createAnswer()
+                    }).then(d => pc.setLocalDescription(d)
+                            )
+                    .catch(error => mkToast(error, 'error'))
+                
+                pc.onicecandidate = e => {
+
+                    if (e.candidate){
+                        console.log('CHECK HIT> HITTING BRAKES')
+                        return
+                    }
+
+                    const answer = pc.localDescription.sdp
+                    console.log(answer)
+                    mkToast('Made Answer. Sending...', 'success')
+
+                    // Set Answer for Peer's pole to pickup
+                    const setAnswer = new Promise((resolve, reject) => {
+                        console.log('SETTING ANSWER... ')
+                        const xhr = new XMLHttpRequest()
+
+                        xhr.open("GET", `/setAnswer/?answer=${answer}`)
+                        xhr.onreadystatechange = (res) =>
+                            xhr.status == 200 ? resolve(res) : reject('not good')
+                        xhr.send()
+                    }).then(x => mkToast('Set Answer. Waiting for peer\'s connection...'))
+                    .catch(error => mkToast(error, 'error'))
+                }
+            }
         }).catch(error => mkToast(error, 'error'))
     }
     else {
@@ -152,22 +177,20 @@ function createOffer() {
             return
         }
 
-        const offer = pc.localDescription.sdp
-            , uid = userId
-        ;
-        console.dir(offer)
-        console.log(uid)
-
         const mkConn = new Promise((resolve, reject) => {
-
-           
-            sendToServer('offer', `?offer=${offer}&uid=${uid}`)
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", `/setOffer/?offer=${pc.localDescription.sdp}&uid=${userId}`)
+            xhr.onreadystatechange = () =>
+                xhr.status == 200 ? resolve(xhr) : reject(xhr.error)
+            xhr.send()
 
         }).then(conn => {
-            console.dir(conn)
-            mkToast('Connection created. Waiting for reply...', 'info')
 
-            poleForAnswer(conn.Id)
+            mkToast('Connection created. Waiting for reply...', 'info')
+            console.dir(conn)
+
+            poleForAnswer('nothing yet')
 
         }).catch(error => console.error(error, 'error'))
     }
@@ -177,7 +200,7 @@ const sendToServer = (where, what) => new Promise((res, rej) => {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", `/${where}/${what}`, true)
     xhr.onreadystatechange = () =>
-        xhr.status == 200 ? res(xhr.responseText) : rej(xhr.error)
+        xhr.status == 200 ? res(xhr.responseText) : rej(xhr)
     xhr.send()
 })
 
