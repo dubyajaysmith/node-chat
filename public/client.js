@@ -62,7 +62,7 @@ const poleForAnswer = (Id) => {
             const xhr = new XMLHttpRequest()
             xhr.open("GET", `/getOffer/`, false)
             xhr.onreadystatechange = () => {
-                const offer = xhr.response
+                const offer = `${xhr.response}\r\n`
                 console.log(offer.length)
                 xhr.status == 200 
                     ? resolve(offer) : reject('not good')
@@ -94,14 +94,14 @@ const poleForAnswer = (Id) => {
 
                     console.log('inside onicecandidate')
 
-                    
+
                     if (e.candidate){
                         console.log('CHECK HIT> HITTING BRAKES')
                         return
                     }
 
 
-                    const answer = pc.localDescription.sdp
+                    const answer = `${pc.localDescription.sdp}\r\n`
                     console.log(answer.length)
                     mkToast('Made Answer. Sending...', 'success')
 
