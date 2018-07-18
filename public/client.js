@@ -19,12 +19,14 @@ const enterPressed = e => e.keyCode == 13
 
 const getMedia = navigator.mediaDevices.getUserMedia({video:true, audio:true})
     .then(stream => pc.addStream(localVideo.srcObject = stream))
-    .catch(e => mkToast(e, 'error'))
+    .catch(e => console.error(e))
 
-const haveAnswer = (conn) => {
+const haveAnswer = (data) => {
 
+    console.log('haveAnswer')
+    console.dir(data)
     //Fix up the answer
-    const answer = `${conn.jamiesmith__Answer__c}\r\n`
+    const answer = `${decodeURIComponent(data)}\r\n`
 
     const desc = new RTCSessionDescription({ type:"answer", sdp:answer })
     pc.setRemoteDescription(desc)
@@ -62,31 +64,33 @@ const poleForAnswer = (Id) => {
             const xhr = new XMLHttpRequest()
             xhr.open("GET", `/getOffer/`, false)
             xhr.onreadystatechange = () => {
-                const offer = `${xhr.response}\r\n`
-                console.log(offer.length)
                 xhr.status == 200 
-                    ? resolve(offer) : reject('not good')
+                    ? resolve(xhr.response) : reject('not good')
             }
             xhr.send()
             
-        }).then(offer => {
+        }).then(data => {
 
-            console.log('in offer then >> ', offer.length)
-
-            if(offer){
+            console.log('in offer then >> ', data.length)
+            console.dir(data)
+            if(data){
                     
                 mkToast('Found Offer. Making Answer...', 'success')
                 //console.log(offer)
 
-                // set _offer
+                // set _offer to make Answer
+                const offer = `${decodeURIComponent(data)}\r\n`
+
+                console.dir(offer)
+
                 const desc = new RTCSessionDescription({ type:"offer", sdp:offer })
                 pc.setRemoteDescription(desc)
                     .then(() => {
                         console.log('setRemoteDescription THEN >> ')
                         pc.createAnswer()
                     }).then(d => {
-                        pc.setLocalDescription(d)
                         console.log('setLocalDescription THEN >> ')
+                        pc.setLocalDescription(d)
                     })
                     .catch(error => console.error(error))
                 
@@ -94,15 +98,11 @@ const poleForAnswer = (Id) => {
 
                     console.log('inside onicecandidate')
 
-
                     if (e.candidate){
                         console.log('CHECK HIT> HITTING BRAKES')
                         return
                     }
 
-
-                    const answer = `${pc.localDescription.sdp}\r\n`
-                    console.log(answer.length)
                     mkToast('Made Answer. Sending...', 'success')
 
                     // Set Answer for Peer's pole to pickup
@@ -110,7 +110,7 @@ const poleForAnswer = (Id) => {
                         console.log('SETTING ANSWER... ')
                         const xhr = new XMLHttpRequest()
 
-                        xhr.open("GET", `/setAnswer/?answer=${answer}`)
+                        xhr.open("GET", `/setAnswer/?answer=${encodeURIComponent(pc.localDescription.sdp)}`)
                         xhr.onreadystatechange = (res) =>
                             xhr.status == 200 ? resolve(res) : reject('not good')
                         xhr.send()
@@ -119,7 +119,7 @@ const poleForAnswer = (Id) => {
                     .catch(error => console.error(error))
                 }
             }
-        }).catch(error => mkToast(error, 'error'))
+        }).catch(error => console.error(error))
     }
     else {
         
@@ -183,13 +183,12 @@ function createOffer() {
         if(e.candidate){
             return
         }
-
         const mkConn = new Promise((resolve, reject) => {
             
             const xhr = new XMLHttpRequest();
-            xhr.open("GET", `/setOffer/?offer=${pc.localDescription.sdp}&uid=${userId}`)
+            xhr.open("GET", `/setOffer/?offer=${encodeURIComponent(pc.localDescription.sdp)}&uid=${userId}`)
             xhr.onreadystatechange = () =>
-                xhr.status == 200 ? resolve(xhr) : reject(xhr.error)
+                xhr.status == 200 ? resolve(xhr) : reject(xhr)
             xhr.send()
 
         }).then(conn => {
@@ -199,7 +198,7 @@ function createOffer() {
 
             poleForAnswer('nothing yet')
 
-        }).catch(error => console.error(error, 'error'))
+        }).catch(error => console.error(error))
     }
 }
 

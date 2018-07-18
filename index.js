@@ -29,6 +29,7 @@ app.get('/setOffer/', (req, res) => {
         , offer = req.query.offer;
 
     console.log('setting offer..... ')
+    //console.log(offer)
 
     const store = new Storage('signal')
     store.put('offer', req.query.offer)
@@ -42,6 +43,8 @@ app.get('/getOffer/', (req, res) => {
 
     const store = new Storage('signal')
     const offer = store.get('offer')
+
+    console.log(offer)
 
     res.send(offer)
 })
