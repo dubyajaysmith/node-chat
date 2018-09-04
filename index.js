@@ -2,15 +2,11 @@
 'use strict()'
 
 const path = require('path')
-    , low = require('lowdb')
     , express = require('express')
     , bodyParser = require('body-parser')
     , Storage = require('node-storage')
-    , FileSync = require('lowdb/adapters/FileSync')
 ;
-const adapter = new FileSync('db.json')
-    , DB = low(adapter)
-    , app = express('path')
+const app = express('path')
     , PORT = process.env.PORT || 4242
     , store = new Storage('/tmp/connections')
 ;
@@ -21,7 +17,7 @@ const adapter = new FileSync('db.json')
 app.use(bodyParser.json())
     .use(express.static(path.join(__dirname, 'public')))
     .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
-    .listen(PORT, () => console.log(`http://127.0.0.1:${PORT}`))
+    .listen(PORT)
 
 
 // client talkers

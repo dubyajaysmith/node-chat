@@ -9,13 +9,12 @@
   "scripts": {
     ".": "node index.js",
     "start": "node index.js",
-    "test": "node test.js",
     "gulp": "gulp",
     "gulp-watch": "gulp watch"
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "express": "^4.15.2",
-    "lowdb": "^1.0.0",
     "node-storage": "0.0.7"
   },
   "devDependencies": {},
