@@ -9,7 +9,9 @@
   "scripts": {
     ".": "node index.js",
     "start": "node index.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "gulp": "gulp",
+    "gulp-watch": "gulp watch"
   },
   "dependencies": {
     "express": "^4.15.2",

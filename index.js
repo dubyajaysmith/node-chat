@@ -1,70 +1,80 @@
 // jshint asi: true, esversion: 6, laxcomma: true
 'use strict()'
 
-const express = require('express')
-    , app = express('path')
-    , path = require('path')
-    , PORT = process.env.PORT || 5500
-    , Storage = require('node-storage')
+const path = require('path')
     , low = require('lowdb')
+    , express = require('express')
+    , bodyParser = require('body-parser')
+    , Storage = require('node-storage')
     , FileSync = require('lowdb/adapters/FileSync')
-    , adapter = new FileSync('db.json')
+;
+const adapter = new FileSync('db.json')
     , DB = low(adapter)
+    , app = express('path')
+    , PORT = process.env.PORT || 4242
+    , store = new Storage('/tmp/connections')
 ;
 
 
-if(DB.get('dev').value() == undefined){
-    console.log('init DB')
-    DB.get('posts').push({ id: 1, title: `DB init ${new Date().toLocaleDateString()}`}).write()
-}
 
 
-app.use(express.static(path.join(__dirname, 'public')))
-   .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
-   .listen(PORT, () => console.log(`localhost:${ PORT }`))
+app.use(bodyParser.json())
+    .use(express.static(path.join(__dirname, 'public')))
+    .get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')))
+    .listen(PORT, () => console.log(`http://127.0.0.1:${PORT}`))
 
-app.get('/setOffer/', (req, res) => {
+
+// client talkers
+app.get('/getConn/', (req, res) => {
     
     const uid = req.query.uid
-        , offer = req.query.offer;
-
-    console.log('setting offer..... ')
-    //console.log(offer)
-
-    const store = new Storage('signal')
-    store.put('offer', req.query.offer)
-
-    res.send({status: true, offer: 'set'})
-})
-app.get('/getOffer/', (req, res) => {
+        , conn = store.get(uid)
+    ;
     
-
-    console.log('getting offer..... ')
-
-    const store = new Storage('signal')
-    const offer = store.get('offer')
-
-    console.log(offer)
-
-    res.send(offer)
+    res.send(conn)
 })
 
-app.get('/setAnswer/', (req, res) => {
+app.post('/setOffer/', (req, res) => {
 
-    console.log('setting answer..... ')
+    const data = req.body
+        , uid = data.uid.toString()
+        , offer = data.offer
+    ;
 
-    const store = new Storage('signal')
-    store.put('answer', req.query.answer)
+    if(store.get(uid)){
+        store.remove(uid)
+    }
+    
+    store.put(uid, {uid, offer, status: true})
 
-    res.send()
+    const conn = store.get(uid)
+    console.log('>> setOffer')
+    console.dir(conn)
+    res.send(conn)
 })
-app.get('/getAnswer/', (req, res) => {
 
-    console.log('getting answer..... ')
+app.post('/setAnswer/', (req, res) => {
 
-    const store = new Storage('signal')
-    const answer = store.get('answer')
-    const offer = store.get('offer')
+    const data = req.body
+        , uid = data.uid.toString()
+        , answer = data.answer.sdp//.replace(/UDP\/TLS\/RTP\/SAVPF/g, 'RTP/SAVPF')
+        , conn = store.get(uid)
+    ;
+    
+    console.log('SET ANSWER for', uid)
 
-    res.send({status: true, answer, offer})
+    conn.answer = answer
+
+    store.put(uid, conn)
+    
+    res.send(store.get(uid))
 })
+
+
+
+// test playground
+app.post('/fetch/', (request, response) => {
+    console.log('fetch hit')
+    console.log(request.body)
+    response.json(request.body)
+});
